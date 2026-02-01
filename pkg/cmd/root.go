@@ -30,6 +30,7 @@ var llmModelNames = map[LLMModel][]string{
 }
 
 var llmModel = ModelClaudeOpus
+var maxIterations int
 
 // claudeGenerate is a variable that wraps gonzo.ClaudeGenerate for testing.
 var claudeGenerate = gonzo.ClaudeGenerate
@@ -62,6 +63,13 @@ func init() {
 		enumflag.New(&llmModel, "model", llmModelNames, enumflag.EnumCaseInsensitive),
 		"model", "m",
 		fmt.Sprintf("Language model to use (options: %s, %s, %s)", gonzo.CLAUDE_HAIKU, gonzo.CLAUDE_SONNET, gonzo.CLAUDE_OPUS))
+
+	rootCmd.PersistentFlags().IntVarP(
+		&maxIterations,
+		"max-iterations",
+		"i",
+		10,
+		"Maximum number of iterations")
 }
 
 func runClaudePrompt(cmd *cobra.Command, args []string) {
