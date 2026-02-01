@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -138,8 +137,7 @@ func TestClaudeGenerate_WithContext(t *testing.T) {
 	cancel() // Cancel immediately
 
 	// The function should handle the cancelled context gracefully
-	// Note: The current implementation doesn't actually use the context
-	// This test documents that behavior
+	// The implementation uses exec.CommandContext to respect context cancellation
 	_, err := ClaudeGenerate(ctx, CLAUDE_SONNET, "test prompt")
 
 	// Error is expected (either from CLI not found or embed.FS)

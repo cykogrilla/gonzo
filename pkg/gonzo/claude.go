@@ -61,7 +61,7 @@ func ensureProgressFileExists() error {
 		if err != nil {
 			return fmt.Errorf("failed to create progress file: %w", err)
 		}
-		defer Swallow(f.Close())
+		defer func() { Swallow(f.Close()) }()
 		err = t.ExecuteTemplate(f, "progress.tmpl", struct {
 			Now time.Time
 		}{
