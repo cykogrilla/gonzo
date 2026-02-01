@@ -1,0 +1,75 @@
+package gonzo
+
+import (
+	"context"
+	"embed"
+	"errors"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"text/template"
+	"time"
+)
+
+const CLAUDE_CODE_CLI = "claude"
+const CLAUDE_HAIKU = "claude-haiku-4-5"
+const CLAUDE_SONNET = "claude-sonnet-4-5"
+const CLAUDE_OPUS = "claude-opus-4-5"
+
+//go:embed prompts
+var promptLib embed.FS
+
+// ClaudeGenerate sends a prompt to the Claude API and returns the generated response.
+func ClaudeGenerate(ctx context.Context, model string, prompt string) (string, error) {
+	systemPrompt, err := promptLib.ReadFile("prompts/PARAM_TASK_RUNNER.md")
+
+	err = ensureProgressFileExists()
+	if err != nil {
+		return "", fmt.Errorf("failed to ensure progress file exists: %w", err)
+	}
+
+	cmd := exec.CommandContext(
+		ctx,
+		CLAUDE_CODE_CLI,
+		"--dangerously-skip-permissions",
+		"--print",
+		"--model",
+		model,
+		"--system-prompt",
+		string(systemPrompt),
+		prompt)
+	out, err := cmd.Output()
+	return string(out), err
+}
+
+func ensureProgressFileExists() error {
+	dir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current working directory: %w", err)
+	}
+
+	progressFile := filepath.Join(dir, "progress.txt")
+
+	if _, err := os.Stat(progressFile); errors.Is(err, os.ErrNotExist) {
+		t, err := template.ParseFS(promptLib, "prompts/progress.tmpl")
+		if err != nil {
+			return fmt.Errorf("failed to read progress template: %w", err)
+		}
+
+		f, err := os.Create(progressFile)
+		if err != nil {
+			return fmt.Errorf("failed to create progress file: %w", err)
+		}
+		defer Swallow(f.Close())
+		err = t.ExecuteTemplate(f, "progress.tmpl", struct {
+			Now time.Time
+		}{
+			Now: time.Now(),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to write to progress file: %w", err)
+		}
+	}
+	return nil
+}
