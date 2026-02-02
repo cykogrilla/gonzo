@@ -38,13 +38,10 @@ var newRunner = func(model string, quiet bool, maxIter int) gonzo.Runner {
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "gonzo",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Implementation of the Ralph Technique for LLMs",
+	Long: `Gonzo is a CLI that encapsulates Claude Code.
+It uses iterative prompting to refine responses from the model by running
+multiple iterations.`,
 	Args: cobra.ArbitraryArgs,
 	Run:  runClaudePrompt,
 }
