@@ -70,6 +70,11 @@ func (cc *ClaudeConfig) WithMaxIterations(maxIterations int) *ClaudeConfig {
 	return cc
 }
 
+func (cc *ClaudeConfig) WithBranch(branch bool) *ClaudeConfig {
+	cc.branch = branch
+	return cc
+}
+
 // Generate sends a prompt to the Claude API and returns the generated response.
 func (cc *ClaudeConfig) Generate(ctx context.Context, feature string) (string, error) {
 	systemPrompt, err := promptLib.ReadFile("prompts/system_prompt.tmpl")
