@@ -23,6 +23,7 @@ const ClaudeOpus = "claude-opus-4-5"
 const DefaultOptClaudeModel = ClaudeOpus
 const DefaultOptQuiet = false
 const DefaultMaxIterations = 10
+const DefaultBranch = true
 
 //go:embed prompts
 var promptLib embed.FS
@@ -36,6 +37,7 @@ type ClaudeConfig struct {
 	model         string
 	quiet         bool
 	maxIterations int
+	branch        bool
 }
 
 type Option func(*ClaudeConfig)
@@ -55,17 +57,23 @@ func (cc *ClaudeConfig) WithMaxIterations(maxIterations int) *ClaudeConfig {
 	return cc
 }
 
+func (cc *ClaudeConfig) WithBranch(branch bool) *ClaudeConfig {
+	cc.branch = branch
+	return cc
+}
+
 func New() *ClaudeConfig {
 	return &ClaudeConfig{
 		model:         DefaultOptClaudeModel,
 		quiet:         DefaultOptQuiet,
 		maxIterations: DefaultMaxIterations,
+		branch:        DefaultBranch,
 	}
 }
 
 // Generate sends a prompt to the Claude API and returns the generated response.
 func (cc *ClaudeConfig) Generate(ctx context.Context, feature string) (string, error) {
-	systemPrompt, err := promptLib.ReadFile("prompts/PARAM_TASK_RUNNER.md")
+	systemPrompt, err := promptLib.ReadFile("prompts/system_prompt.tmpl")
 
 	cc.logInfo("Starting Gonzo")
 	cc.logInfo("  Model: %s", cc.model)
@@ -137,9 +145,11 @@ func (cc *ClaudeConfig) ensureProgressFileExists() error {
 		}
 		defer func() { Swallow(f.Close()) }()
 		err = t.ExecuteTemplate(f, "progress.tmpl", struct {
-			Now time.Time
+			Now    time.Time
+			Branch bool
 		}{
-			Now: time.Now(),
+			Now:    time.Now(),
+			Branch: cc.branch,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to write to progress file: %w", err)
