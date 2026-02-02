@@ -49,8 +49,8 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit' INT TERM
 
-# Colors (only when supported)
-if [ "${COLOR}" = "1" ]; then
+# Color support (disabled if not a terminal or NO_COLOR is set)
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
     RED='\033[0;31m'
     GREEN='\033[0;32m'
     YELLOW='\033[0;33m'
@@ -79,9 +79,6 @@ ${BOLD}USAGE${NC}
 ${BOLD}OPTIONS${NC}
     -b <dir>    Installation directory (default: ~/.local/bin or ./bin)
     -d          Enable debug logging
-    -f          Force install (overwrite existing installation)
-    -q          Quiet mode (minimal output)
-    -t <tag>    Install specific version tag (default: latest)
     -h          Show this help message
 
 ${BOLD}EXAMPLES${NC}
@@ -121,14 +118,6 @@ main() {
                 BINDIR="${user_bin}"
             elif [ ! -e "${HOME}/.local" ] && [ -w "${HOME}" ]; then
                 BINDIR="${user_bin}"
-            fi
-        fi
-        # Fall back to ./bin if ~/.local/bin isn't usable
-        if [ -z "${BINDIR}" ]; then
-            if [ -w "/usr/local/bin" ]; then
-                BINDIR="/usr/local/bin"
-            else
-                BINDIR="./bin"
             fi
         fi
     fi
@@ -402,6 +391,13 @@ hash_sha256_verify() {
     want="$(grep "${basename}" "${checksums}" 2>/dev/null | tr '\t' ' ' | cut -d ' ' -f 1)"
     if [ -z "${want}" ]; then
         log_crit "checksum not found for ${basename} in checksums file"
+        return 1
+    fi
+
+    # Validate checksum format (must be 64 hex characters)
+    if ! printf '%s' "${want}" | grep -qE '^[a-f0-9]{64}$'; then
+        log_crit "invalid checksum format in checksums file"
+        log_crit "  got: ${want}"
         return 1
     fi
 
