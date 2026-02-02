@@ -37,14 +37,11 @@ var newRunner = func(model string, quiet bool, maxIter int) gonzo.Runner {
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "gonzo",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:   "gonzo [flags] feature",
+	Short: "Implementation of the Ralph Technique for LLMs",
+	Long: `Gonzo is a CLI that encapsulates Claude Code.
+It uses iterative prompting to refine responses from the model by running
+multiple iterations.`,
 	Args: cobra.ArbitraryArgs,
 	Run:  runClaudePrompt,
 }
@@ -79,31 +76,31 @@ func init() {
 }
 
 func runClaudePrompt(cmd *cobra.Command, args []string) {
-	var prompt string
+	var feature string
 
 	// Check if stdin is a pipe (has data)
 	stdinStat, _ := os.Stdin.Stat()
 	stdinIsPipe := (stdinStat.Mode() & os.ModeCharDevice) == 0
 
 	if len(args) > 0 {
-		prompt = strings.Join(args, " ")
+		feature = strings.Join(args, " ")
 	} else if stdinIsPipe {
 		scanner := bufio.NewScanner(os.Stdin)
 		var lines []string
 		for scanner.Scan() {
 			lines = append(lines, scanner.Text())
 		}
-		prompt = strings.Join(lines, "\n")
+		feature = strings.Join(lines, "\n")
 	}
 
-	if prompt == "" {
+	if feature == "" {
 		_ = cmd.Help()
 		return
 	}
 
 	runner := newRunner(llmModelNames[llmModel][0], quiet, maxIterations)
 
-	response, err := runner.Generate(cmd.Context(), prompt)
+	response, err := runner.Generate(cmd.Context(), feature)
 	if err != nil {
 		log.Fatal(err)
 	}
