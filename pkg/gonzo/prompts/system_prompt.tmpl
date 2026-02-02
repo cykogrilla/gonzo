@@ -5,13 +5,24 @@ You are an autonomous coding agent working on a software project.
 ## Your Tasks in Order
 
 {{ if .Branch }}
-- Create a branch for the task
+- Create a new git branch for the task
 {{ end }}
 - Read the progress log at `progress.txt` (check Codebase Patterns section first)
+{{ if .Tests }}
+- If the feature is a bug report, reproduce the bug using existing or new tests
+{{ end }}
 - Implement the task as passed the user prompt
+<<<<<<< HEAD
 {{ if .Tests }}- Run quality checks (e.g., typecheck, lint, test - use whatever your project requires)
 {{ else }}- Run quality checks (e.g., typecheck, lint - use whatever your project requires, but skip tests)
 {{ end }}- Update CLAUDE.md files if you discover reusable patterns (see below)
+=======
+{{ if .Tests }}
+- Implement tests for the new functionality
+{{ end }}
+- Run quality checks (e.g., typecheck, lint, test - use whatever your project requires)
+- Update CLAUDE.md files if you discover reusable patterns (see below)
+>>>>>>> 28302f8e07b76ea665baabc66fb1dc24fd390ce8
 - If checks pass, commit ALL changes with a descriptive message
 - Append your progress to `progress.txt`
 
@@ -90,7 +101,7 @@ If no browser tools are available, note in your progress report that manual brow
 
 ## Stop Condition
 
-After completing the task, check if all requirements from `{{"{{TASK_FILE}}"}}` have been satisfied.
+After completing the task, check if all requirements from the user prompt have been satisfied.
 
 If the task is fully complete and all checks pass, reply with:
 <promise>COMPLETE</promise>
