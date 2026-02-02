@@ -7,9 +7,10 @@ Started: 2026-02-01 20:26:13.228328175 -0700 MST m=+0.000745718
 - Binary naming convention: `{name}-{os}-{arch}` (e.g., `gonzo-linux-amd64`)
 - Checksums file expected at: `releases/download/{tag}/checksums.txt`
 - Color output respects NO_COLOR environment variable
-- CLI flags use builder pattern: `New().WithModel().WithQuiet().WithTests()` etc.
+- CLI flags use builder pattern: `New().WithModel().WithQuiet().WithTests().WithPR()` etc.
 - Template files in prompts/ use Go text/template with conditional blocks for flags
 - Literal `{{...}}` in templates must be escaped as `{{"{{...}}"}}`
+- When adding new flags: update root.go (var + flag), mockRunner, mockRunnerFactory, newRunner, and tests
 
 ---
 
@@ -102,5 +103,29 @@ Started: 2026-02-01 20:26:13.228328175 -0700 MST m=+0.000745718
 - Literal `{{...}}` in Go templates must be escaped as `{{"{{...}}"}}` otherwise they're interpreted as template functions
 - Follow the existing builder pattern (`WithXxx()` methods) when adding new config options
 - Test files follow the pattern of saving/restoring global variables in defer blocks
+
+---
+
+## 2026-02-02 - Add --pr flag for automatic pull request creation
+
+### What was implemented
+- Added a new `--pr` (`-p`) CLI flag that defaults to `false`
+- When `true`, the system prompt instructs the agent to create a PR if one does not exist for the current branch
+- The flag follows the existing builder pattern for boolean flags
+- Updated the system prompt template with conditional PR creation instructions
+- Fixed a merge conflict in system_prompt.tmpl that was present in the codebase
+
+### Files changed
+- `pkg/cmd/root.go` - Added `pr` variable and `--pr` flag definition
+- `pkg/cmd/root_test.go` - Added tests for the new flag (default, explicit values, short form)
+- `pkg/gonzo/claude.go` - Added `pr` field to ClaudeConfig, `WithPR()` method, and template data
+- `pkg/gonzo/claude_test.go` - Added tests for `WithPR()` method and default value
+- `pkg/gonzo/prompts/system_prompt.tmpl` - Added conditional PR Creation section with `gh` CLI instructions
+
+### Learnings for future iterations
+- The `gh` CLI is expected to be installed and authenticated for PR creation
+- Use `gh pr view 2>/dev/null || gh pr create` pattern to check for existing PR before creating
+- When adding new boolean flags, update: root.go (variable + flag), mockRunner struct, mockRunnerFactory signature, newRunner factory, and corresponding tests
+- Template conditionals use `{{ if .PR }}...{{ end }}` pattern consistently with other flags
 
 ---
