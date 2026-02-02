@@ -29,7 +29,7 @@ var promptLib embed.FS
 
 // Runner is the interface for generating responses from Claude.
 type Runner interface {
-	Generate(ctx context.Context, prompt string) (string, error)
+	Generate(ctx context.Context, feature string) (string, error)
 }
 
 type ClaudeConfig struct {
@@ -64,7 +64,7 @@ func New() *ClaudeConfig {
 }
 
 // Generate sends a prompt to the Claude API and returns the generated response.
-func (cc *ClaudeConfig) Generate(ctx context.Context, prompt string) (string, error) {
+func (cc *ClaudeConfig) Generate(ctx context.Context, feature string) (string, error) {
 	systemPrompt, err := promptLib.ReadFile("prompts/PARAM_TASK_RUNNER.md")
 
 	cc.logInfo("Starting Gonzo")
@@ -86,7 +86,7 @@ func (cc *ClaudeConfig) Generate(ctx context.Context, prompt string) (string, er
 		out, err = cc.callClaudeCLI(
 			ctx,
 			string(systemPrompt),
-			prompt)
+			feature)
 		if err != nil {
 			//noinspection GoErrorStringFormatInspection
 			return "", fmt.Errorf("Claude CLI call failed at iteration %d: %w", i, err)
