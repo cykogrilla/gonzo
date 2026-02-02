@@ -17,10 +17,11 @@ import (
 
 // mockRunner implements gonzo.Runner for testing.
 type mockRunner struct {
-	model    string
-	quiet    bool
-	response string
-	err      error
+	model         string
+	quiet         bool
+	maxIterations int
+	response      string
+	err           error
 	// Captured values
 	capturedPrompt string
 	generateCalled bool
@@ -32,11 +33,12 @@ func (m *mockRunner) Generate(ctx context.Context, prompt string) (string, error
 	return m.response, m.err
 }
 
-// mockRunnerFactory creates a factory function that returns a mock runner and captures model/quiet.
-func mockRunnerFactory(mock *mockRunner) func(model string, quiet bool) gonzo.Runner {
-	return func(model string, quiet bool) gonzo.Runner {
+// mockRunnerFactory creates a factory function that returns a mock runner and captures options.
+func mockRunnerFactory(mock *mockRunner) func(model string, quiet bool, maxIter int) gonzo.Runner {
+	return func(model string, quiet bool, maxIter int) gonzo.Runner {
 		mock.model = model
 		mock.quiet = quiet
+		mock.maxIterations = maxIter
 		return mock
 	}
 }
@@ -378,5 +380,130 @@ func TestRunClaudePrompt_InvalidModel(t *testing.T) {
 
 	if !strings.Contains(output, "invalid") || !strings.Contains(output, "model") {
 		t.Errorf("expected error message about invalid model, got %q", output)
+	}
+}
+
+func TestRunClaudePrompt_DefaultMaxIterations(t *testing.T) {
+	// Save original and restore after test
+	originalNewRunner := newRunner
+	originalMaxIterations := maxIterations
+	defer func() {
+		newRunner = originalNewRunner
+		maxIterations = originalMaxIterations
+	}()
+
+	mock := &mockRunner{response: "mocked response"}
+	newRunner = mockRunnerFactory(mock)
+
+	// Capture stdout
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	// Reset to default (flag default is 10)
+	maxIterations = 10
+	_, _, err := executeCommandC(rootCmd, "test prompt")
+
+	_ = w.Close()
+	os.Stdout = oldStdout
+
+	var buf bytes.Buffer
+	_, _ = io.Copy(&buf, r)
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expectedMaxIterations := 10
+	if mock.maxIterations != expectedMaxIterations {
+		t.Errorf("expected default maxIterations %d, got %d", expectedMaxIterations, mock.maxIterations)
+	}
+}
+
+func TestRunClaudePrompt_MaxIterationsFlag(t *testing.T) {
+	// Save original and restore after test
+	originalNewRunner := newRunner
+	originalMaxIterations := maxIterations
+	defer func() {
+		newRunner = originalNewRunner
+		maxIterations = originalMaxIterations
+	}()
+
+	mock := &mockRunner{response: "mocked response"}
+	newRunner = mockRunnerFactory(mock)
+
+	// Capture stdout
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	_, _, err := executeCommandC(rootCmd, "--max-iterations", "25", "test prompt")
+
+	_ = w.Close()
+	os.Stdout = oldStdout
+
+	var buf bytes.Buffer
+	_, _ = io.Copy(&buf, r)
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expectedMaxIterations := 25
+	if mock.maxIterations != expectedMaxIterations {
+		t.Errorf("expected maxIterations %d, got %d", expectedMaxIterations, mock.maxIterations)
+	}
+}
+
+func TestRunClaudePrompt_MaxIterationsFlagShort(t *testing.T) {
+	// Save original and restore after test
+	originalNewRunner := newRunner
+	originalMaxIterations := maxIterations
+	defer func() {
+		newRunner = originalNewRunner
+		maxIterations = originalMaxIterations
+	}()
+
+	mock := &mockRunner{response: "mocked response"}
+	newRunner = mockRunnerFactory(mock)
+
+	// Capture stdout
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	_, _, err := executeCommandC(rootCmd, "-i", "5", "test prompt")
+
+	_ = w.Close()
+	os.Stdout = oldStdout
+
+	var buf bytes.Buffer
+	_, _ = io.Copy(&buf, r)
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expectedMaxIterations := 5
+	if mock.maxIterations != expectedMaxIterations {
+		t.Errorf("expected maxIterations %d, got %d", expectedMaxIterations, mock.maxIterations)
+	}
+}
+
+func TestRunClaudePrompt_InvalidMaxIterations(t *testing.T) {
+	// Save original and restore after test
+	originalMaxIterations := maxIterations
+	defer func() {
+		maxIterations = originalMaxIterations
+	}()
+
+	_, output, err := executeCommandC(rootCmd, "--max-iterations", "not-a-number", "test prompt")
+
+	if err == nil {
+		t.Error("expected error for invalid max-iterations")
+	}
+
+	if !strings.Contains(output, "invalid") {
+		t.Errorf("expected error message about invalid value, got %q", output)
 	}
 }

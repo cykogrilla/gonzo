@@ -31,8 +31,8 @@ var maxIterations int
 var quiet bool
 
 // newRunner creates a new gonzo.Runner. Replaceable for testing.
-var newRunner = func(model string, quiet bool) gonzo.Runner {
-	return gonzo.New().WithModel(model).WithQuiet(quiet)
+var newRunner = func(model string, quiet bool, maxIter int) gonzo.Runner {
+	return gonzo.New().WithModel(model).WithQuiet(quiet).WithMaxIterations(maxIter)
 }
 
 // rootCmd represents the base command when called without any subcommands
@@ -101,7 +101,7 @@ func runClaudePrompt(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	runner := newRunner(llmModelNames[llmModel][0], quiet)
+	runner := newRunner(llmModelNames[llmModel][0], quiet, maxIterations)
 
 	response, err := runner.Generate(cmd.Context(), prompt)
 	if err != nil {
