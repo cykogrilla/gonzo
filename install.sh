@@ -178,10 +178,17 @@ main() {
         existing_version="$(${INSTALLED_BINARY} --version 2>/dev/null || echo "unknown")"
         log_info "Existing installation found: ${existing_version}"
         log_info "Use -f to force reinstall"
+        exit 0
     fi
 
     # Install the binary
     log_debug "installing to ${INSTALLED_BINARY}"
+
+    # Remove the old binary first to avoid "Text file busy" error
+    # This happens when the binary is currently running
+    if [ -f "${INSTALLED_BINARY}" ]; then
+        rm -f "${INSTALLED_BINARY}"
+    fi
 
     cp "${tmpdir}/${RELEASE_BINARY}" "${INSTALLED_BINARY}"
     chmod +x "${INSTALLED_BINARY}"
