@@ -3,12 +3,14 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"gonzo/pkg/config"
 	"gonzo/pkg/gonzo"
 	"log"
 	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/thediveo/enumflag/v2"
 )
 
@@ -44,9 +46,16 @@ var rootCmd = &cobra.Command{
 	Short: "Implementation of the Ralph Technique for LLMs",
 	Long: `Gonzo is a CLI that encapsulates Claude Code.
 It uses iterative prompting to refine responses from the model by running
-multiple iterations.`,
-	Args: cobra.ArbitraryArgs,
-	Run:  runClaudePrompt,
+multiple iterations.
+
+Configuration can be provided via:
+  - Command-line flags (highest priority)
+  - Environment variables (GONZO_ prefix, e.g., GONZO_MODEL, GONZO_MAX_ITERATIONS)
+  - Config file (~/.gonzo.yaml, ~/.config/gonzo/gonzo.yaml, or ./gonzo.yaml)
+  - Default values (lowest priority)`,
+	Args:              cobra.ArbitraryArgs,
+	PersistentPreRunE: initConfig,
+	Run:               runClaudePrompt,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -56,6 +65,22 @@ func Execute() {
 	if err != nil {
 		os.Exit(1)
 	}
+}
+
+// initConfig initializes Viper configuration and binds flags.
+// This is called as PersistentPreRunE to ensure config is loaded before the command runs.
+func initConfig(cmd *cobra.Command, args []string) error {
+	// Initialize Viper with defaults, config file, and env vars
+	if err := config.Init(); err != nil {
+		return err
+	}
+
+	// Bind Cobra flags to Viper
+	if err := config.BindFlags(cmd); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func init() {
@@ -115,7 +140,25 @@ func runClaudePrompt(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	runner := newRunner(llmModelNames[llmModel][0], quiet, maxIterations, branch, tests, pr)
+	// Get config values from Viper (which already merged flag, env, and config file values)
+	// For the model, check if the flag was explicitly set; otherwise use Viper's value
+	modelValue := llmModelNames[llmModel][0]
+	if !cmd.Flags().Changed(config.KeyModel) {
+		// Flag wasn't explicitly set, check Viper (env var or config file)
+		viperModel := viper.GetString(config.KeyModel)
+		if viperModel != "" {
+			modelValue = viperModel
+		}
+	}
+
+	runner := newRunner(
+		modelValue,
+		viper.GetBool(config.KeyQuiet),
+		viper.GetInt(config.KeyMaxIterations),
+		viper.GetBool(config.KeyBranch),
+		viper.GetBool(config.KeyTests),
+		viper.GetBool(config.KeyPR),
+	)
 
 	response, err := runner.Generate(cmd.Context(), feature)
 	if err != nil {
