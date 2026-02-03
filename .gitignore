@@ -215,3 +215,6 @@ $RECYCLE.BIN/
 
 build/*
 _test_log.xml
+
+# Gonzo local progress tracking (not committed)
+.gonzo/
