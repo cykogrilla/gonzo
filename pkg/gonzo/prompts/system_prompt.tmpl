@@ -137,6 +137,24 @@ For any task that changes UI, verify it works in the browser if you have browser
 
 If no browser tools are available, note in your progress report that manual browser verification is needed.
 
+## Post-Implementation Context Check
+
+After your feature is working and tests pass, check for related context files that may need updates:
+
+1. **Check `.gonzo/progress.txt`** - Ensure your progress entry is complete and accurate
+2. **Look for related documentation** - Search for `.md`, `.json`, or `.txt` files near your changed files:
+   - README files that describe the feature area
+   - Configuration files that may need new entries
+   - Documentation files that reference the changed functionality
+3. **Update if necessary** - If any related files are now outdated or incomplete due to your changes, update them
+
+**Files to look for:**
+- `README.md`, `CHANGELOG.md`, `CLAUDE.md` in affected directories
+- Config files (`*.json`, `*.yaml`, `*.toml`) that may need new options documented
+- Any `.txt` files with instructions or notes related to your changes
+
+This ensures the codebase stays consistent and future iterations have accurate context.
+
 ## Stop Condition
 
 After completing the task, check if all requirements from the user prompt have been satisfied.

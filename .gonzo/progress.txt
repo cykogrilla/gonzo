@@ -233,3 +233,27 @@ Started: 2026-02-01 20:26:13.228328175 -0700 MST m=+0.000745718
 - When changing file paths, update both the code and any documentation/templates that reference those paths
 
 ---
+
+## 2026-02-03 - Add post-implementation context check instructions
+
+### What was implemented
+- Added a new "Post-Implementation Context Check" section to the system prompt template
+- Instructs the agent to check related context files after the feature is working and tests pass:
+  - `.gonzo/progress.txt` for completeness
+  - README.md, CHANGELOG.md, CLAUDE.md files in affected directories
+  - Config files (*.json, *.yaml, *.toml) that may need documentation updates
+  - Any .txt files with instructions related to the changes
+- This ensures codebase consistency and accurate context for future iterations
+
+### Files changed
+- `pkg/gonzo/prompts/system_prompt.tmpl` - Added "Post-Implementation Context Check" section
+
+### Learnings for future iterations
+- Template-only changes don't require Go code changes
+- The system prompt is the primary way to instruct the agent on workflow steps
+- Adding post-implementation checks helps maintain documentation consistency
+
+### PR Created
+- https://github.com/cykogrilla/gonzo/pull/29
+
+---
