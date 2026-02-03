@@ -80,10 +80,11 @@ func TestEnsureProgressFileExists_CreatesFile(t *testing.T) {
 		t.Fatalf("failed to change to temp directory: %v", err)
 	}
 
-	// Verify progress.txt doesn't exist initially
-	progressPath := filepath.Join(tmpDir, "progress.txt")
+	// Verify .gonzo/progress.txt doesn't exist initially
+	gonzoDir := filepath.Join(tmpDir, ".gonzo")
+	progressPath := filepath.Join(gonzoDir, "progress.txt")
 	if _, err := os.Stat(progressPath); !os.IsNotExist(err) {
-		t.Fatal("progress.txt should not exist before test")
+		t.Fatal(".gonzo/progress.txt should not exist before test")
 	}
 
 	// Call the function - note: this will fail if promptLib isn't properly embedded
@@ -96,9 +97,12 @@ func TestEnsureProgressFileExists_CreatesFile(t *testing.T) {
 		t.Skipf("Skipping test - embed.FS not available in test context: %v", err)
 	}
 
-	// If we get here, verify the file was created
+	// If we get here, verify the .gonzo directory and file were created
+	if _, err := os.Stat(gonzoDir); os.IsNotExist(err) {
+		t.Error(".gonzo directory should have been created")
+	}
 	if _, err := os.Stat(progressPath); os.IsNotExist(err) {
-		t.Error("progress.txt should have been created")
+		t.Error(".gonzo/progress.txt should have been created")
 	}
 }
 
@@ -121,11 +125,15 @@ func TestEnsureProgressFileExists_ExistingFile(t *testing.T) {
 		t.Fatalf("failed to change to temp directory: %v", err)
 	}
 
-	// Create an existing progress.txt with custom content
-	progressPath := filepath.Join(tmpDir, "progress.txt")
+	// Create the .gonzo directory and an existing progress.txt with custom content
+	gonzoDir := filepath.Join(tmpDir, ".gonzo")
+	if err := os.MkdirAll(gonzoDir, 0755); err != nil {
+		t.Fatalf("failed to create .gonzo directory: %v", err)
+	}
+	progressPath := filepath.Join(gonzoDir, "progress.txt")
 	originalContent := "existing content"
 	if err := os.WriteFile(progressPath, []byte(originalContent), 0644); err != nil {
-		t.Fatalf("failed to create existing progress.txt: %v", err)
+		t.Fatalf("failed to create existing .gonzo/progress.txt: %v", err)
 	}
 
 	// Call the function
@@ -138,11 +146,11 @@ func TestEnsureProgressFileExists_ExistingFile(t *testing.T) {
 	// Verify the existing file was not overwritten
 	content, err := os.ReadFile(progressPath)
 	if err != nil {
-		t.Fatalf("failed to read progress.txt: %v", err)
+		t.Fatalf("failed to read .gonzo/progress.txt: %v", err)
 	}
 
 	if string(content) != originalContent {
-		t.Errorf("existing progress.txt should not be modified, got %q, want %q", string(content), originalContent)
+		t.Errorf("existing .gonzo/progress.txt should not be modified, got %q, want %q", string(content), originalContent)
 	}
 }
 
