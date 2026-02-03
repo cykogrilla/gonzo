@@ -185,9 +185,15 @@ func (cc *ClaudeConfig) ensureProgressFileExists() error {
 		return fmt.Errorf("failed to get current working directory: %w", err)
 	}
 
-	progressFile := filepath.Join(dir, "progress.txt")
+	gonzoDir := filepath.Join(dir, ".gonzo")
+	progressFile := filepath.Join(gonzoDir, "progress.txt")
 
 	if _, err := os.Stat(progressFile); errors.Is(err, os.ErrNotExist) {
+		// Ensure .gonzo directory exists
+		if err := os.MkdirAll(gonzoDir, 0755); err != nil {
+			return fmt.Errorf("failed to create .gonzo directory: %w", err)
+		}
+
 		t, err := template.ParseFS(promptLib, "prompts/progress.tmpl")
 		if err != nil {
 			return fmt.Errorf("failed to read progress template: %w", err)
