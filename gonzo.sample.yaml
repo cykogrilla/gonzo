@@ -25,4 +25,4 @@ tests: true
 pr: true
 
 # Git commit author (format: 'Name <email>')
-commit-author: "Gonzo <gonzo@barilla.you>"
+commit-author: "Gonzo <gonzo@cykogrilla.com>"
