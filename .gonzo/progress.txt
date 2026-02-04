@@ -285,3 +285,30 @@ Started: 2026-02-01 20:26:13.228328175 -0700 MST m=+0.000745718
 - https://github.com/cykogrilla/gonzo/pull/31
 
 ---
+
+## 2026-02-03 - Add comprehensive usage instructions to README
+
+### What was implemented
+- Added a complete "Usage" section to README.md including:
+  - Basic usage examples (direct input, file input, stdin piping)
+  - Full command line options reference with all flags
+  - Practical usage examples for common scenarios
+- Added "Configuration" section documenting:
+  - Configuration priority (flags > env vars > file > defaults)
+  - Config file locations and example YAML configuration
+  - Environment variables with GONZO_ prefix
+- Added "Prerequisites" section listing Git, Claude Code, and gh CLI requirements
+- Added "How It Works" section explaining the Ralph Wiggum technique workflow
+
+### Files changed
+- `README.md` - Added 123 lines of comprehensive usage documentation
+
+### Learnings for future iterations
+- README structure follows: Overview → Installation → Usage → Configuration → Prerequisites → How It Works
+- Default flag values are documented in `pkg/config/config.go` as `Default*` constants
+- The CLI supports three input methods: direct argument, file path, and stdin pipe
+
+### PR Created
+- https://github.com/cykogrilla/gonzo/pull/34
+
+---
