@@ -63,6 +63,12 @@ Configuration can be provided via:
 	Run:               runClaudePrompt,
 }
 
+// SetVersion sets the version string for the root command.
+// This enables the --version flag.
+func SetVersion(v string) {
+	rootCmd.Version = v
+}
+
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
