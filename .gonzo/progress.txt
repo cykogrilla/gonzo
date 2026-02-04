@@ -340,3 +340,31 @@ Started: 2026-02-01 20:26:13.228328175 -0700 MST m=+0.000745718
 - https://github.com/andybarilla/gonzo/pull/37
 
 ---
+
+## 2026-02-04 - Switch --tests flag to --no-new-tests flag
+
+### What was implemented
+- Inverted the test flag logic from `--tests` (default true) to `--no-new-tests` (default false)
+- Default behavior now creates tests (which is the common case)
+- Users can skip test creation with `--no-new-tests` flag
+- Removed the `-t` shorthand since negated flags conventionally don't have short forms
+
+### Files changed
+- `pkg/config/config.go` - Changed `KeyTests` to `KeyNoNewTests`, updated defaults, renamed getter
+- `pkg/config/config_test.go` - Updated tests for `GONZO_NO_NEW_TESTS` env var
+- `pkg/cmd/root.go` - Changed `--tests` flag to `--no-new-tests`, updated viper key
+- `pkg/cmd/root_test.go` - Updated all tests from `tests` to `noNewTests`
+- `pkg/gonzo/claude.go` - Renamed `tests` field to `noNewTests`, inverted template logic (`Tests = !noNewTests`)
+- `README.md` - Updated documentation for `--no-new-tests` flag
+- `gonzo.sample.yaml` - Updated config option from `tests` to `no-new-tests`
+
+### Learnings for future iterations
+- When inverting boolean flags, template logic must also be inverted: `Tests: !cc.noNewTests`
+- This follows the same pattern as the --no-branch flag inversion
+- Keep deprecated constants (`KeyTests`, `DefaultTests`) for backwards compatibility
+- Environment variable names use underscores: `GONZO_NO_NEW_TESTS`
+
+### PR Created
+- https://github.com/andybarilla/gonzo/pull/38
+
+---
