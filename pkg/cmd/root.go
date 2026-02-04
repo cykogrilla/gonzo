@@ -31,14 +31,14 @@ var llmModelNames = map[LLMModel][]string{
 var llmModel = ModelClaudeOpus
 var maxIterations int
 var quiet bool
-var branch bool
+var noBranch bool
 var tests bool
 var pr bool
 var commitAuthor string
 
 // newRunner creates a new gonzo.Runner. Replaceable for testing.
-var newRunner = func(model string, quiet bool, maxIter int, branch bool, tests bool, pr bool, commitAuthor string) gonzo.Runner {
-	return gonzo.New().WithModel(model).WithQuiet(quiet).WithMaxIterations(maxIter).WithBranch(branch).WithTests(tests).WithPR(pr).WithCommitAuthor(commitAuthor)
+var newRunner = func(model string, quiet bool, maxIter int, noBranch bool, tests bool, pr bool, commitAuthor string) gonzo.Runner {
+	return gonzo.New().WithModel(model).WithQuiet(quiet).WithMaxIterations(maxIter).WithNoBranch(noBranch).WithTests(tests).WithPR(pr).WithCommitAuthor(commitAuthor)
 }
 
 // rootCmd represents the base command when called without any subcommands
@@ -113,10 +113,10 @@ func init() {
 		"quiet", "q", config.DefaultQuiet,
 		"Disable output messages")
 
-	rootCmd.PersistentFlags().BoolVarP(
-		&branch,
-		"branch", "b", config.DefaultBranch,
-		"Create a new git branch for the changes")
+	rootCmd.PersistentFlags().BoolVar(
+		&noBranch,
+		"no-branch", config.DefaultNoBranch,
+		"Skip creating a new git branch for the changes")
 
 	rootCmd.PersistentFlags().BoolVarP(
 		&tests,
@@ -178,7 +178,7 @@ func runClaudePrompt(cmd *cobra.Command, args []string) {
 		modelValue,
 		viper.GetBool(config.KeyQuiet),
 		viper.GetInt(config.KeyMaxIterations),
-		viper.GetBool(config.KeyBranch),
+		viper.GetBool(config.KeyNoBranch),
 		viper.GetBool(config.KeyTests),
 		viper.GetBool(config.KeyPR),
 		viper.GetString(config.KeyCommitAuthor),

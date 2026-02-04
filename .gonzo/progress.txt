@@ -312,3 +312,31 @@ Started: 2026-02-01 20:26:13.228328175 -0700 MST m=+0.000745718
 - https://github.com/cykogrilla/gonzo/pull/34
 
 ---
+
+## 2026-02-04 - Switch --branch flag to --no-branch flag
+
+### What was implemented
+- Inverted the branch flag logic from `--branch` (default true) to `--no-branch` (default false)
+- Default behavior is now to create a branch (which is the common case)
+- Users can skip branch creation with `--no-branch` flag
+- Removed the `-b` shorthand since negated flags conventionally don't have short forms
+
+### Files changed
+- `pkg/config/config.go` - Added deprecated KeyBranch constant, kept KeyNoBranch and DefaultNoBranch
+- `pkg/config/config_test.go` - Updated tests for GONZO_NO_BRANCH env var
+- `pkg/cmd/root.go` - Changed --branch flag to --no-branch, updated viper key
+- `pkg/cmd/root_test.go` - Updated all branch tests to noBranch tests
+- `pkg/gonzo/claude.go` - Renamed branch field to noBranch, inverted template logic (Branch = !noBranch)
+- `README.md` - Updated documentation for --no-branch flag
+- `gonzo.sample.yaml` - Added commented no-branch config option
+
+### Learnings for future iterations
+- When inverting boolean flags, template logic must also be inverted: `Branch: !cc.noBranch`
+- Negated flags (--no-*) conventionally don't have shorthand flags
+- Mock structures in tests need to match the newRunner signature exactly
+- Keep deprecated constants for backwards compatibility in config files
+
+### PR Updated
+- https://github.com/andybarilla/gonzo/pull/37
+
+---
