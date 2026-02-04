@@ -31,14 +31,14 @@ var llmModelNames = map[LLMModel][]string{
 var llmModel = ModelClaudeOpus
 var maxIterations int
 var quiet bool
-var branch bool
+var noBranch bool
 var tests bool
 var pr bool
 var commitAuthor string
 
 // newRunner creates a new gonzo.Runner. Replaceable for testing.
-var newRunner = func(model string, quiet bool, maxIter int, branch bool, tests bool, pr bool, commitAuthor string) gonzo.Runner {
-	return gonzo.New().WithModel(model).WithQuiet(quiet).WithMaxIterations(maxIter).WithBranch(branch).WithTests(tests).WithPR(pr).WithCommitAuthor(commitAuthor)
+var newRunner = func(model string, quiet bool, maxIter int, noBranch bool, tests bool, pr bool, commitAuthor string) gonzo.Runner {
+	return gonzo.New().WithModel(model).WithQuiet(quiet).WithMaxIterations(maxIter).WithNoBranch(noBranch).WithTests(tests).WithPR(pr).WithCommitAuthor(commitAuthor)
 }
 
 // rootCmd represents the base command when called without any subcommands

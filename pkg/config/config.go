@@ -32,7 +32,7 @@ const (
 	KeyModel         = "model"
 	KeyMaxIterations = "max-iterations"
 	KeyQuiet         = "quiet"
-	KeyBranch        = "branch"
+	KeyNoBranch      = "no-branch"
 	KeyTests         = "tests"
 	KeyPR            = "pr"
 	KeyCommitAuthor  = "commit-author"
@@ -43,7 +43,7 @@ const (
 	DefaultModel         = "claude-opus-4-5"
 	DefaultMaxIterations = 10
 	DefaultQuiet         = false
-	DefaultBranch        = true
+	DefaultNoBranch      = false
 	DefaultTests         = true
 	DefaultPR            = true
 	DefaultCommitAuthor  = "Gonzo <gonzo@barilla.you>"
@@ -57,7 +57,7 @@ func Init() error {
 	viper.SetDefault(KeyModel, DefaultModel)
 	viper.SetDefault(KeyMaxIterations, DefaultMaxIterations)
 	viper.SetDefault(KeyQuiet, DefaultQuiet)
-	viper.SetDefault(KeyBranch, DefaultBranch)
+	viper.SetDefault(KeyNoBranch, DefaultNoBranch)
 	viper.SetDefault(KeyTests, DefaultTests)
 	viper.SetDefault(KeyPR, DefaultPR)
 	viper.SetDefault(KeyCommitAuthor, DefaultCommitAuthor)
@@ -97,7 +97,7 @@ func Init() error {
 // This should be called in the cobra command's PersistentPreRunE or PreRunE
 // after flags have been defined but before they are used.
 func BindFlags(cmd *cobra.Command) error {
-	flags := []string{KeyModel, KeyMaxIterations, KeyQuiet, KeyBranch, KeyTests, KeyPR, KeyCommitAuthor}
+	flags := []string{KeyModel, KeyMaxIterations, KeyQuiet, KeyNoBranch, KeyTests, KeyPR, KeyCommitAuthor}
 
 	for _, flag := range flags {
 		if err := viper.BindPFlag(flag, cmd.PersistentFlags().Lookup(flag)); err != nil {
@@ -123,9 +123,9 @@ func GetQuiet() bool {
 	return viper.GetBool(KeyQuiet)
 }
 
-// GetBranch returns whether branch creation is enabled
-func GetBranch() bool {
-	return viper.GetBool(KeyBranch)
+// GetNoBranch returns whether branch creation is disabled
+func GetNoBranch() bool {
+	return viper.GetBool(KeyNoBranch)
 }
 
 // GetTests returns whether tests should be run
